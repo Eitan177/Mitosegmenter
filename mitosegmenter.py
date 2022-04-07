@@ -37,7 +37,34 @@ if image_file is not None:
     st.pyplot(fig)
 
     mm=skimage.measure.find_contours(np.round(mo[0,:,:,0]),0.5,fully_connected='low')
-    hh=np.sort(np.array([len(jj) for jj in mm]))
+    hh=np.array([len(jj) for jj in mm])
     mito_count=np.sum(hh>100)
     st.write('Mitochondria Count:')
     st.write(mito_count)
+    
+    def find_area_perim(array):
+        a = 0
+        p = 0
+        ox,oy = array[0]
+        for x,y in array[1:]:
+            a += (x*oy-y*ox)
+            p += abs((x-ox)+(y-oy)*1j)
+            ox,oy = x,y
+        return a/2,p
+    lla=list()
+    llp=list()
+    llap = list()
+    
+    mmfilt=np.array(mm,dtype='object')[hh>100]
+    for jj in mmfilt:
+        a,p=find_area_perim(jj)
+        lla.append(a)
+        llp.append(p)
+        llap.append(p/a)
+    fig, ax = plt.subplots()
+    ax.hist(llp, bins=20)
+    st.pyplot(fig)
+    st.write('mean perimeter '+str(np.mean(llp)))
+    st.write('median perimeter '+str(np.median(llp)))
+    st.write('min perimeter '+str(np.min(llp)))
+    st.write('max perimeter '+str(np.max(llp)))
